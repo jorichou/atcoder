@@ -1,5 +1,9 @@
 from collections import Counter
 import sys
+import bisect
+import fractions
+from itertools import permutations, combinations, combinations_with_replacement, product
+import numpy as np
 
 """
 AtCoderInputクラス
@@ -9,16 +13,19 @@ AtCoderInputクラス
 - single_input: 単一入力
 - multiple_input: 複数入力
 - list_input: リスト入力
+- grid_input: グリッド入力
 
 パラメータ:
 - input_type: 出力の型（int, float, strなど）
 - sep: 区切り文字（デフォルトはスペース）
+- rows: グリッドの行数（grid_input用）
 
 使用例:
 aci = AtCoderInput()
 n = aci.single_input(int)  # 単一整数入力
 a, b = aci.multiple_input(int)  # 複数整数入力
 lst = aci.list_input(int)  # 整数リスト入力
+grid = aci.grid_input(3, int)  # 3行の整数グリッド入力
 x, y = aci.multiple_input(float, sep=',')  # カンマ区切りの浮動小数点数入力
 """
 class AtCoderInput: # 入力処理クラス
@@ -33,6 +40,12 @@ class AtCoderInput: # 入力処理クラス
     
     def list_input(self, input_type, sep=' '): # リスト入力
         return list(map(input_type, input().split(sep)))
+    
+    def grid_input(self, rows, input_type, sep=' '): # グリッド入力
+        grid = []
+        for _ in range(rows):
+            grid.append(list(map(input_type, input().split(sep))))
+        return grid
     
 
 if __name__ == "__main__": # メイン処理
