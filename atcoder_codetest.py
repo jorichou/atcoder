@@ -87,9 +87,24 @@ class AtCoderOutput: # 出力処理クラス
     def print_judge(self, judge:bool): # 判定出力
         print("Yes" if judge else "No")
 
-if __name__ == "__main__": # メイン処理
+def input_test(): # 入力処理テスト関数
     aci = AtCoderInput()
     n = aci.single_input(int)
-    print(f"n\t type: {type(n)}")
+    a, b = aci.multiple_input(int)
+    lst = aci.list_input(int)
+    grid = aci.grid_input(3, int)
+    print(n, a, b, lst, grid)
+
+def output_test(): # 出力処理テスト関数
+    aco = AtCoderOutput()
+    aco.single_output(42)
+    aco.list_output([1, 2, 3, 4])
+    aco.grid_output([[1, 2], [3, 4]])
+    aco.print_judge(True)
+    aco.print_judge(0)
+
+if __name__ == "__main__": # メイン処理
+    input_test()
+    output_test()
 
 
