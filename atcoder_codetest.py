@@ -1,9 +1,9 @@
-from collections import Counter
-import sys
-import bisect
-import fractions
-from itertools import permutations, combinations, combinations_with_replacement, product
-import numpy as np
+# from collections import Counter
+# import sys
+# import bisect
+# import fractions
+# from itertools import permutations, combinations, combinations_with_replacement, product
+# import numpy as np
 
 """
 AtCoderInputクラス
@@ -87,24 +87,26 @@ class AtCoderOutput: # 出力処理クラス
     def print_judge(self, judge:bool): # 判定出力
         print("Yes" if judge else "No")
 
-def input_test(): # 入力処理テスト関数
-    aci = AtCoderInput()
-    n = aci.single_input(int)
-    a, b = aci.multiple_input(int)
-    lst = aci.list_input(int)
-    grid = aci.grid_input(3, int)
-    print(n, a, b, lst, grid)
+# def input_test(): # 入力処理テスト関数
+#     aci = AtCoderInput()
+#     n = aci.single_input(int)
+#     a, b = aci.multiple_input(int)
+#     lst = aci.list_input(int)
+#     grid = aci.grid_input(3, int)
+#     print(n, a, b, lst, grid)
 
-def output_test(): # 出力処理テスト関数
-    aco = AtCoderOutput()
-    aco.single_output(42)
-    aco.list_output([1, 2, 3, 4])
-    aco.grid_output([[1, 2], [3, 4]])
-    aco.print_judge(True)
-    aco.print_judge(0)
+# def output_test(): # 出力処理テスト関数
+#     aco = AtCoderOutput()
+#     aco.single_output(42)
+#     aco.list_output([1, 2, 3, 4])
+#     aco.grid_output([[1, 2], [3, 4]])
+#     aco.print_judge(True)
+#     aco.print_judge(0)
 
 if __name__ == "__main__": # メイン処理
-    input_test()
-    output_test()
+    # input_test()
+    # output_test()
+    aci = AtCoderInput()
+    aco = AtCoderOutput()
 
-
+    
