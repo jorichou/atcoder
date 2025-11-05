@@ -106,7 +106,7 @@ class AtCoderOutput: # 出力処理クラス
 if __name__ == "__main__": # メイン処理
     # input_test()
     # output_test()
-    aci = AtCoderInput()
-    aco = AtCoderOutput()
+    acin = AtCoderInput()
+    acout = AtCoderOutput()
 
     
