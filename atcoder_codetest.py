@@ -32,16 +32,16 @@ class AtCoderInput: # 入力処理クラス
     def __init__(self):
         pass
 
-    def single_input(self, input_type: type=int): # 単一入力
+    def single(self, input_type: type=int): # 単一入力
         return input_type(input())
     
-    def multiple_input(self, input_type: type=int, sep=' '): # 複数入力
+    def multiple(self, input_type: type=int, sep=' '): # 複数入力
         return map(input_type, input().split(sep))
     
-    def list_input(self, input_type: type=int, sep=' '): # リスト入力
+    def list(self, input_type: type=int, sep=' '): # リスト入力
         return list(map(input_type, input().split(sep)))
     
-    def grid_input(self, rows:int, input_type: type=str, sep=' '): # グリッド入力
+    def grid(self, rows:int, input_type: type=str, sep=' '): # グリッド入力
         grid = []
         for _ in range(rows):
             grid.append(list(map(input_type, input().split(sep))))
@@ -74,17 +74,17 @@ class AtCoderOutput: # 出力処理クラス
     def __init__(self):
         pass
 
-    def single_output(self, value): # 単一出力
+    def single(self, value): # 単一出力
         print(value)
     
-    def list_output(self, values: list, sep=' '): # リスト出力
+    def list(self, values: list, sep=' '): # リスト出力
         print(sep.join(map(str, values)))
 
-    def grid_output(self, grid: list, sep=''): # グリッド出力
+    def grid(self, grid: list, sep=''): # グリッド出力
         for row in grid:
             print(sep.join(map(str, row)))
     
-    def print_judge(self, judge: bool): # 判定出力
+    def judge(self, judge: bool): # 判定出力
         print("Yes" if judge else "No")
 
 # def input_test(): # 入力処理テスト関数
