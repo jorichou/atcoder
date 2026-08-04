@@ -18,7 +18,7 @@ from socket import AddressInfo
 from typing import Counter
 
 
-def i_single(input_type: type):  # 単一入力
+def i_single(input_type: type = int):  # 単一入力
     return input_type(input())
 
 
@@ -35,6 +35,6 @@ def o_judge(judge: bool):  # 判定出力
 
 def main():
     
-
+    
 if __name__ == "__main__":  # メイン処理
     main()
