@@ -5,6 +5,7 @@ import heapq
 import itertools
 import math
 import pprint
+import queue
 import re
 import sys
 from collections import defaultdict, deque
@@ -15,7 +16,15 @@ from operator import itemgetter
 from socket import AddressInfo
 
 # from itertools import permutations # 順列を列挙する
-from typing import Counter
+from typing import Callable, Counter
+
+
+# main ============================================================
+
+def main():
+    return
+    
+# ==============================================================
 
 
 def i_single(input_type: type = int):  # 単一入力
@@ -33,17 +42,22 @@ def i_list(input_type: type = int, sep=" "):  # リスト入力
 def o_judge(judge: bool):  # 判定出力
     print("Yes" if judge else "No")
 
-def cumulative_sum(l: list[int]): # 累積和を求める
+
+def cumulative_sum(l: list[int]):  # 累積和を求める
     ans = [l[0]]
     for i in range(1, len(l)):
         ans[i] = ans[i - 1] + l[i]
     return ans
 
+
 class SegmentTree:
     """
     点更新・区間取得を行う非再帰セグメント木
     """
-    def __init__(self, size_or_arr: int | list[int], op: function, identity: int):
+
+    def __init__(
+        self, size_or_arr: int | list[int], op: Callable[[int, int], int], identity: int
+    ):
         self.op = op
         self.identity = identity
 
@@ -88,21 +102,7 @@ class SegmentTree:
         return self.op(res_l, res_r)
 
 
-def main():
-    n, m = i_multi()
-    if m == 0:
-        print('No')
-    else:
-        graph = defaultdict(list[int])
-        for _ in range(n):
-            v = sorted(i_list())
-            graph[v[0]].append(v[1])
-
-        if len(graph[1]) != 1 or len(graph[n]) != 1:
-            print("No")
-        else:
-
-
+# ===================================================
 
 if __name__ == "__main__":  # メイン処理
     main()
