@@ -71,7 +71,7 @@ pip install -r requirements.txt
 
 ```json
 {
-    "atcoder_user_id": "[自分のAtCoderのユーザーID]"
+    "atcoder_user_id": "[ご自身の AtCoder ユーザーID]"
 }
 ```
 
