@@ -10,9 +10,11 @@ from upload_contest import (
     ConfigManager,
     GitManager,
     ProblemParser,
+    RollbackManager,
     SubmissionStorage,
     format_iso_timestamp,
 )
+
 
 
 class TestProblemParser(unittest.TestCase):
@@ -124,7 +126,53 @@ class TestSubmissionStorage(unittest.TestCase):
         self.assertEqual(meta["solutions"][1]["submitted_contest"], "adt_all_20260811_1")
 
 
+class TestRollbackManager(unittest.TestCase):
+    def setUp(self):
+        self.test_dir = tempfile.mkdtemp()
+        self.processed_file = os.path.join(self.test_dir, "data", "processed_submissions.json")
+        self.solutions_dir = os.path.join(self.test_dir, "solutions")
+        self.storage = SubmissionStorage(
+            processed_file=self.processed_file,
+            solutions_dir=self.solutions_dir,
+        )
+
+    def tearDown(self):
+        shutil.rmtree(self.test_dir)
+
+    def test_rollback_on_failure(self):
+        self.storage.save_processed_ids({100})
+        rollback_mgr = RollbackManager(self.storage)
+
+        # 新規解答の保存
+        self.storage.save_solution(
+            contest_type="ABC",
+            contest_name="ABC300",
+            problem_name="A",
+            problem_id="abc300_a",
+            submission_id=999,
+            submitted_at="2026-08-21T00:00:00+09:00",
+            submitted_contest="abc300",
+            language="Python",
+            code="print(1)",
+            rollback_mgr=rollback_mgr,
+        )
+        self.storage.save_processed_ids({100, 999})
+
+        sol_file = os.path.join(self.solutions_dir, "ABC", "ABC300", "A", "01.py")
+        meta_file = os.path.join(self.solutions_dir, "ABC", "ABC300", "A", "metadata.json")
+        self.assertTrue(os.path.exists(sol_file))
+        self.assertTrue(os.path.exists(meta_file))
+
+        # ロールバック実行 (Git操作なしでファイル系ロールバック検証)
+        rollback_mgr.rollback()
+
+        self.assertFalse(os.path.exists(sol_file))
+        self.assertFalse(os.path.exists(meta_file))
+        self.assertEqual(self.storage.load_processed_ids(), {100})
+
+
 class TestTimestampFormat(unittest.TestCase):
+
     def test_format_iso_timestamp(self):
         ts = 1786426335  # 2026-08-11 14:32:15 JST approximate timestamp
         formatted = format_iso_timestamp(ts)

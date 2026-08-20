@@ -159,6 +159,82 @@ class AtCoderAPI:
         return res.status_code == 200
 
 
+class RollbackManager:
+    """Git Push失敗時にローカルファイル・メタデータ・Git状態を元に戻す"""
+
+    def __init__(self, storage: "SubmissionStorage"):
+        self.storage = storage
+        self.initial_processed_ids: Set[int] = storage.load_processed_ids()
+        self.created_files: List[str] = []
+        self.metadata_backups: Dict[str, Optional[str]] = {}
+        self.committed: bool = False
+
+    def track_metadata_before_change(self, meta_path: str) -> None:
+        if meta_path not in self.metadata_backups:
+            if os.path.exists(meta_path):
+                try:
+                    with open(meta_path, "r", encoding="utf-8") as f:
+                        self.metadata_backups[meta_path] = f.read()
+                except Exception:
+                    self.metadata_backups[meta_path] = None
+            else:
+                self.metadata_backups[meta_path] = None
+
+    def track_created_file(self, file_path: str) -> None:
+        self.created_files.append(file_path)
+
+    def rollback(self) -> None:
+        print()
+        print("Rolling back changes due to push failure...")
+
+        # 1. Gitコミット / ステージングの削除
+        if self.committed:
+            subprocess.run(["git", "reset", "--mixed", "HEAD~1"], check=False)
+        else:
+            subprocess.run(["git", "reset"], check=False)
+
+        # 2. processed_submissions.json の復元
+        self.storage.save_processed_ids(self.initial_processed_ids)
+
+        # 3. 新規作成された解答ファイルの削除
+        for fpath in reversed(self.created_files):
+            if os.path.exists(fpath):
+                try:
+                    os.remove(fpath)
+                except Exception:
+                    pass
+
+        # 4. metadata.json の復元
+        for meta_path, content in self.metadata_backups.items():
+            if content is None:
+                if os.path.exists(meta_path):
+                    try:
+                        os.remove(meta_path)
+                    except Exception:
+                        pass
+            else:
+                try:
+                    with open(meta_path, "w", encoding="utf-8") as f:
+                        f.write(content)
+                except Exception:
+                    pass
+
+        # 空ディレクトリのクリーンアップ
+        for fpath in self.created_files:
+            folder = os.path.dirname(fpath)
+            while folder and os.path.exists(folder) and folder != SOLUTIONS_DIR:
+                try:
+                    if not os.listdir(folder):
+                        os.rmdir(folder)
+                        folder = os.path.dirname(folder)
+                    else:
+                        break
+                except Exception:
+                    break
+
+        print("Rollback completed successfully.")
+
+
 class SubmissionStorage:
     """保存済み提出IDの管理、ファイル保存、メタデータ更新を行う"""
 
@@ -197,6 +273,7 @@ class SubmissionStorage:
         submitted_contest: str,
         language: str,
         code: str,
+        rollback_mgr: Optional[RollbackManager] = None,
     ) -> Tuple[str, str]:
         """
         解答コードと metadata.json を保存し、(保存相対パス, ファイル名) を返す。
@@ -217,12 +294,16 @@ class SubmissionStorage:
         filename = f"{next_idx:02d}.py"
         file_path = os.path.join(problem_dir, filename)
 
+        meta_path = os.path.join(problem_dir, "metadata.json")
+        if rollback_mgr:
+            rollback_mgr.track_created_file(file_path)
+            rollback_mgr.track_metadata_before_change(meta_path)
+
         # 解答コード書き込み
         with open(file_path, "w", encoding="utf-8", newline="\n") as f:
             f.write(code)
 
         # metadata.json 更新
-        meta_path = os.path.join(problem_dir, "metadata.json")
         meta_data: Dict[str, Any] = {"problem_id": problem_id, "solutions": []}
         if os.path.exists(meta_path):
             try:
@@ -256,9 +337,19 @@ class GitManager:
     """Git操作を行う"""
 
     @staticmethod
-    def commit_and_push(contest_target_display: str, target_dir: str = SOLUTIONS_DIR) -> bool:
-        if not os.path.exists(target_dir):
-            return True
+    def commit_and_push(
+        contest_target_display: str,
+        target_paths: Optional[List[str]] = None,
+    ) -> Tuple[bool, bool]:
+        """
+        Returns (success: bool, committed: bool)
+        """
+        if target_paths is None:
+            target_paths = [SOLUTIONS_DIR, PROCESSED_SUBMISSIONS_FILE]
+
+        existing_paths = [p for p in target_paths if os.path.exists(p)]
+        if not existing_paths:
+            return True, False
 
         # git status で変更があるか確認
         status_proc = subprocess.run(
@@ -268,17 +359,15 @@ class GitManager:
             check=False,
         )
         if not status_proc.stdout.strip():
-            return True
+            return True, False
 
         # git add
-        add_proc = subprocess.run(["git", "add", target_dir], check=False)
+        add_proc = subprocess.run(["git", "add"] + existing_paths, check=False)
         if add_proc.returncode != 0:
             print("Git add failed.")
-            return False
+            return False, False
 
         # コミットメッセージ構築
-        # ABC300 や ARC180 などの場合は "Add solutions for ABC300"
-        # ADT などの場合は "Add solutions from adt_all_..."
         if re.match(r"^(ABC|ARC|AGC|AHC)\d+$", contest_target_display, re.IGNORECASE):
             commit_msg = f"Add solutions for {contest_target_display.upper()}"
         else:
@@ -290,15 +379,15 @@ class GitManager:
         )
         if commit_proc.returncode != 0:
             print("Git commit failed.")
-            return False
+            return False, False
 
         print("Git push...")
         push_proc = subprocess.run(["git", "push"], check=False)
         if push_proc.returncode != 0:
             print("Git push failed.")
-            return False
+            return False, True
 
-        return True
+        return True, True
 
 
 def format_iso_timestamp(epoch_second: int) -> str:
@@ -359,7 +448,8 @@ def main() -> None:
 
     # 重複判定
     storage = SubmissionStorage()
-    processed_ids = storage.load_processed_ids()
+    rollback_mgr = RollbackManager(storage)
+    processed_ids = rollback_mgr.initial_processed_ids
 
     new_ac_submissions = [
         s for s in ac_submissions if s.get("id") not in processed_ids
@@ -406,6 +496,7 @@ def main() -> None:
             submitted_contest=submitted_contest,
             language=language,
             code=code,
+            rollback_mgr=rollback_mgr,
         )
 
         print(f"→ Saving as {rel_path}")
@@ -419,19 +510,26 @@ def main() -> None:
     print("Updating metadata...")
     print()
 
+    # processed_submissions.json の保存
+    storage.save_processed_ids(processed_ids | newly_saved_ids)
+
     # Git操作
     if not args.no_push:
-        git_success = GitManager.commit_and_push(display_contest)
-        if git_success:
-            # push成功後にprocessed_submissions.jsonを更新
-            storage.save_processed_ids(processed_ids | newly_saved_ids)
+        success, committed = GitManager.commit_and_push(
+            display_contest,
+            target_paths=[SOLUTIONS_DIR, PROCESSED_SUBMISSIONS_FILE],
+        )
+        if success:
             print("Completed!")
         else:
-            print("Warning: Git commit/push failed. Processed IDs were not updated.")
+            rollback_mgr.committed = committed
+            rollback_mgr.rollback()
+            print("Warning: Git commit/push failed. Operations rolled back.")
             sys.exit(1)
     else:
-        storage.save_processed_ids(processed_ids | newly_saved_ids)
         print("Completed! (Git push skipped by --no-push)")
+
+
 
 
 if __name__ == "__main__":
