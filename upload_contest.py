@@ -119,10 +119,22 @@ class AtCoderAPI:
 
     @staticmethod
     def fetch_user_submissions(user_id: str) -> List[Dict[str, Any]]:
-        url = f"https://kenkoooo.com/atcoder/atcoder-api/v3/user/submissions?user={user_id}&from_second=0"
-        res = requests.get(url, headers=DEFAULT_HEADERS, timeout=15)
-        res.raise_for_status()
-        return res.json()
+        all_submissions: List[Dict[str, Any]] = []
+        from_second = 0
+        while True:
+            url = f"https://kenkoooo.com/atcoder/atcoder-api/v3/user/submissions?user={user_id}&from_second={from_second}"
+            res = requests.get(url, headers=DEFAULT_HEADERS, timeout=15)
+            res.raise_for_status()
+            subs = res.json()
+            if not subs:
+                break
+            all_submissions.extend(subs)
+            if len(subs) < 500:
+                break
+            max_sec = max(s.get("epoch_second", 0) for s in subs)
+            from_second = max_sec + 1
+        return all_submissions
+
 
     @staticmethod
     def fetch_submission_code(submitted_contest: str, submission_id: int) -> Optional[str]:
