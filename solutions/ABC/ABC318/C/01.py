@@ -1,0 +1,145 @@
+# from collections import Counter
+import bisect
+import fractions
+import heapq
+import itertools
+import math
+import pprint
+import queue
+import re
+import sys
+from collections import defaultdict, deque
+from itertools import combinations, combinations_with_replacement, permutations, product
+
+# import numpy as np
+from operator import itemgetter
+from socket import AddressInfo
+
+# from itertools import permutations # 順列を列挙する
+from typing import Callable, Counter
+
+
+# main ============================================================
+
+def main():
+    n, d, p = i_multi()
+    f = i_list()
+    f.sort()
+    f_cu = list(itertools.accumulate(f))
+    count = 0
+    i = -1
+    k = math.ceil(n / d)
+    # print(k)
+    results = [p * k]
+    for k in range(0, math.ceil(n / d)):
+        results.append(k * p + f_cu[n - 1 - k * d])
+    print(min(results))
+    # else:
+    #     while i - d >= -n:
+    #         if f_cu[i] - f_cu[i - d] >= p:
+    #             count += 1
+    #             i -= d
+    #         else:
+    #             break
+
+        # print(i)
+        # print(count)
+        # print(f_cu[0])
+        # print(p * count + f_cu[i])
+    # n, m = i_multi()
+    # c = combinations([i for i in range(1, n + 1)], 2)
+    # c = list(c)
+    # print(c)
+    
+    # for _ in range(m):
+    #     x = i_list()
+    #     k = x.pop(0)
+    #     for comb in c:
+    #         if comb[0] in x and comb[1] in x:
+    #             c.remove(comb)
+    # print(c)
+    # o_judge(c == [])
+    return
+    
+# ==============================================================
+
+
+def i_single(input_type: type = int):  # 単一入力
+    return input_type(input())
+
+
+def i_multi(input_type: type = int, sep=" "):  # 複数入力
+    return map(input_type, input().split(sep))
+
+
+def i_list(input_type: type = int, sep=" "):  # リスト入力
+    return list(map(input_type, input().split(sep)))
+
+
+def o_judge(judge: bool):  # 判定出力
+    print("Yes" if judge else "No")
+
+
+def cumulative_sum(l: list[int]):  # 累積和を求める
+    ans = [0] * (len(l) + 1)
+    for i in range(1, len(l)):
+        ans[i] = ans[i - 1] + l[i - 1]
+    return ans
+
+
+class SegmentTree:
+    """
+    点更新・区間取得を行う非再帰セグメント木
+    """
+
+    def __init__(
+        self, size_or_arr: int | list[int], op: Callable[[int, int], int], identity: int
+    ):
+        self.op = op
+        self.identity = identity
+
+        if isinstance(size_or_arr, int):
+            self.n = size_or_arr
+            self.tree = [identity] * (2 * self.n)
+        else:
+            self.n = len(size_or_arr)
+            self.tree = [identity] * (2 * self.n)
+            # 初期データのセット
+            for i in range(self.n):
+                self.tree[self.n + i] = size_or_arr[i]
+            # 構築
+            for i in range(self.n - 1, 0, -1):
+                self.tree[i] = self.op(self.tree[2 * i], self.tree[2 * i + 1])
+
+    def update(self, i, val):
+        """位置 i の値を val に更新: O(log N)"""
+        p = i + self.n
+        self.tree[p] = val
+        while p > 1:
+            p >>= 1
+            self.tree[p] = self.op(self.tree[2 * p], self.tree[2 * p + 1])
+
+    def query(self, l, r):
+        """半開区間 [l, r) のクエリ処理: O(log N)"""
+        res_l = self.identity
+        res_r = self.identity
+        l += self.n
+        r += self.n
+
+        while l < r:
+            if l & 1:
+                res_l = self.op(res_l, self.tree[l])
+                l += 1
+            if r & 1:
+                r -= 1
+                res_r = self.op(self.tree[r], res_r)
+            l >>= 1
+            r >>= 1
+
+        return self.op(res_l, res_r)
+
+
+# ===================================================
+
+if __name__ == "__main__":  # メイン処理
+    main()
