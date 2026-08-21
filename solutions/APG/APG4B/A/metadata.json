@@ -1,0 +1,19 @@
+{
+    "problem_id": "APG4b_a",
+    "solutions": [
+        {
+            "file": "01.py",
+            "submission_id": 60015677,
+            "submitted_at": "2024-11-21T22:52:35+09:00",
+            "submitted_contest": "APG4b",
+            "language": "C++ 20 (gcc 12.2)"
+        },
+        {
+            "file": "02.py",
+            "submission_id": 74749276,
+            "submitted_at": "2026-04-07T16:24:17+09:00",
+            "submitted_contest": "APG4b",
+            "language": "C++23 (GCC 15.2.0)"
+        }
+    ]
+}

@@ -1,0 +1,19 @@
+{
+    "problem_id": "abc346_b",
+    "solutions": [
+        {
+            "file": "01.py",
+            "submission_id": 63172758,
+            "submitted_at": "2025-02-26T20:54:21+09:00",
+            "submitted_contest": "adt_medium_20250226_3",
+            "language": "Python (PyPy 3.10-v7.3.12)"
+        },
+        {
+            "file": "02.py",
+            "submission_id": 64438583,
+            "submitted_at": "2025-04-02T20:15:29+09:00",
+            "submitted_contest": "abc346",
+            "language": "Python (PyPy 3.10-v7.3.12)"
+        }
+    ]
+}

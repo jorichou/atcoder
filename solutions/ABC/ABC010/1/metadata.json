@@ -1,0 +1,12 @@
+{
+    "problem_id": "abc010_1",
+    "solutions": [
+        {
+            "file": "01.py",
+            "submission_id": 75473503,
+            "submitted_at": "2026-05-03T13:52:39+09:00",
+            "submitted_contest": "abc010",
+            "language": "C++23 (GCC 15.2.0)"
+        }
+    ]
+}
