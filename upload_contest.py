@@ -240,11 +240,11 @@ class SubmissionStorage:
 
     def __init__(
         self,
-        processed_file: str = PROCESSED_SUBMISSIONS_FILE,
-        solutions_dir: str = SOLUTIONS_DIR,
+        processed_file: Optional[str] = None,
+        solutions_dir: Optional[str] = None,
     ):
-        self.processed_file = processed_file
-        self.solutions_dir = solutions_dir
+        self.processed_file = processed_file if processed_file is not None else PROCESSED_SUBMISSIONS_FILE
+        self.solutions_dir = solutions_dir if solutions_dir is not None else SOLUTIONS_DIR
 
     def load_processed_ids(self) -> Set[int]:
         if os.path.exists(self.processed_file):
@@ -400,7 +400,10 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description="Upload AC submissions for an AtCoder contest."
     )
-    parser.add_argument("contest_id", help="Contest ID (e.g. abc300, arc180, adt_all_20260811_1)")
+    parser.add_argument(
+        "contest_id",
+        help="Contest ID (e.g. abc300, arc180, adt_all_20260811_1, or 'all' to upload all uncollected AC solutions)",
+    )
     parser.add_argument("--user", help="AtCoder User ID", default=None)
     parser.add_argument(
         "--no-push", help="Skip git push", action="store_true"
@@ -411,7 +414,10 @@ def main() -> None:
     target_contest_lower = target_contest.lower()
     user_id = ConfigManager.get_user_id(args.user)
 
-    display_contest = target_contest.upper() if not target_contest_lower.startswith("adt_") else target_contest.upper()
+    if target_contest_lower == "all":
+        display_contest = "ALL CONTESTS"
+    else:
+        display_contest = target_contest.upper() if not target_contest_lower.startswith("adt_") else target_contest.upper()
 
     print("=== Upload AtCoder Solutions ===")
     print()
@@ -427,24 +433,30 @@ def main() -> None:
         print(f"ERROR: Failed to fetch submissions from AtCoder Problems API: {e}")
         sys.exit(1)
 
-    # 対象コンテストの抽出
-    contest_submissions = [
-        s for s in all_submissions if s.get("contest_id", "").lower() == target_contest_lower
-    ]
-
-    if not contest_submissions:
-        # コンテスト自体の存在チェック
-        if not AtCoderAPI.check_contest_exists(target_contest_lower):
-            print(f'ERROR:\nContest "{target_contest}" was not found.')
-            sys.exit(1)
-        else:
+    if target_contest_lower == "all":
+        ac_submissions = [s for s in all_submissions if s.get("result") == "AC"]
+        if not ac_submissions:
             print("No accepted submissions found.")
             sys.exit(0)
+    else:
+        # 対象コンテストの抽出
+        contest_submissions = [
+            s for s in all_submissions if s.get("contest_id", "").lower() == target_contest_lower
+        ]
 
-    ac_submissions = [s for s in contest_submissions if s.get("result") == "AC"]
-    if not ac_submissions:
-        print("No accepted submissions found.")
-        sys.exit(0)
+        if not contest_submissions:
+            # コンテスト自体の存在チェック
+            if not AtCoderAPI.check_contest_exists(target_contest_lower):
+                print(f'ERROR:\nContest "{target_contest}" was not found.')
+                sys.exit(1)
+            else:
+                print("No accepted submissions found.")
+                sys.exit(0)
+
+        ac_submissions = [s for s in contest_submissions if s.get("result") == "AC"]
+        if not ac_submissions:
+            print("No accepted submissions found.")
+            sys.exit(0)
 
     # 重複判定
     storage = SubmissionStorage()

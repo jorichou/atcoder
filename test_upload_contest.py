@@ -179,5 +179,47 @@ class TestTimestampFormat(unittest.TestCase):
         self.assertIn("+09:00", formatted)
 
 
+class TestAllContestsMode(unittest.TestCase):
+    def setUp(self):
+        self.test_dir = tempfile.mkdtemp()
+        self.processed_file = os.path.join(self.test_dir, "data", "processed_submissions.json")
+        self.solutions_dir = os.path.join(self.test_dir, "solutions")
+
+    def tearDown(self):
+        shutil.rmtree(self.test_dir)
+
+    @patch("upload_contest.AtCoderAPI.fetch_submission_code")
+    @patch("upload_contest.AtCoderAPI.fetch_user_submissions")
+    @patch("upload_contest.GitManager.commit_and_push")
+    @patch("upload_contest.ConfigManager.get_user_id")
+    def test_main_all_contests(self, mock_get_user_id, mock_git, mock_fetch_subs, mock_fetch_code):
+        from upload_contest import main
+
+        mock_get_user_id.return_value = "dummy_user"
+        mock_fetch_subs.return_value = [
+            {"id": 1, "contest_id": "abc300", "problem_id": "abc300_a", "result": "AC", "epoch_second": 1000},
+            {"id": 2, "contest_id": "arc180", "problem_id": "arc180_a", "result": "AC", "epoch_second": 2000},
+            {"id": 3, "contest_id": "abc300", "problem_id": "abc300_b", "result": "WA", "epoch_second": 3000},
+        ]
+        mock_fetch_code.return_value = "print('AC')"
+        mock_git.return_value = (True, True)
+
+        with patch("upload_contest.PROCESSED_SUBMISSIONS_FILE", self.processed_file), \
+             patch("upload_contest.SOLUTIONS_DIR", self.solutions_dir), \
+             patch("sys.argv", ["upload_contest.py", "all"]):
+            main()
+
+        # Check solutions created for both abc300 and arc180 AC submissions
+        abc_file = os.path.join(self.solutions_dir, "ABC", "ABC300", "A", "01.py")
+        arc_file = os.path.join(self.solutions_dir, "ARC", "ARC180", "A", "01.py")
+        self.assertTrue(os.path.exists(abc_file))
+        self.assertTrue(os.path.exists(arc_file))
+
+        # Check git commit message called with "ALL CONTESTS"
+        mock_git.assert_called_once()
+        self.assertEqual(mock_git.call_args[0][0], "ALL CONTESTS")
+
+
 if __name__ == "__main__":
     unittest.main()
+

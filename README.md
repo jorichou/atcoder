@@ -101,6 +101,14 @@ ADTのコンテストIDを指定して実行すると、出題された各問題
 python upload_contest.py adt_all_20260811_1
 ```
 
+### 3. 全コンテストの未処理AC解答を一括アップロード
+
+コンテストIDに `all` を指定すると、過去のすべてのAC解答のうち**まだアップロードしていないものを一括で取得・保存・Git Push**します。
+
+```bash
+python upload_contest.py all
+```
+
 ### 💡 オプション引数
 
 * `--user <USER_ID>`: `config.json` の設定をオーバーライドして別のユーザーIDを指定します。
