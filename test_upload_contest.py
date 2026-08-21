@@ -9,6 +9,7 @@ from upload_contest import (
     AtCoderAPI,
     ConfigManager,
     GitManager,
+    LanguageUtils,
     ProblemParser,
     RollbackManager,
     SubmissionStorage,
@@ -104,7 +105,7 @@ class TestSubmissionStorage(unittest.TestCase):
         self.assertEqual(len(meta["solutions"]), 1)
         self.assertEqual(meta["solutions"][0]["submission_id"], 123456789)
 
-        # 2回目の保存 (ADTなどから同じ問題を解いた場合)
+        # 2回目の保存 (C++で解いた場合)
         rel_path2, fname2 = self.storage.save_solution(
             contest_type="ABC",
             contest_name="ABC348",
@@ -113,17 +114,35 @@ class TestSubmissionStorage(unittest.TestCase):
             submission_id=124000123,
             submitted_at="2026-08-20T19:15:22+09:00",
             submitted_contest="adt_all_20260811_1",
-            language="Python (CPython)",
-            code="print('Hello 2')",
+            language="C++ (GCC 12.2.0)",
+            code="int main() {}",
         )
-        self.assertEqual(fname2, "02.py")
-        self.assertTrue(os.path.exists(os.path.join(self.solutions_dir, "ABC", "ABC348", "D", "02.py")))
+        self.assertEqual(fname2, "02.cpp")
+        self.assertTrue(os.path.exists(os.path.join(self.solutions_dir, "ABC", "ABC348", "D", "02.cpp")))
 
         with open(meta_path, "r", encoding="utf-8") as f:
             meta = json.load(f)
         self.assertEqual(len(meta["solutions"]), 2)
-        self.assertEqual(meta["solutions"][1]["file"], "02.py")
+        self.assertEqual(meta["solutions"][1]["file"], "02.cpp")
         self.assertEqual(meta["solutions"][1]["submitted_contest"], "adt_all_20260811_1")
+
+
+class TestLanguageUtils(unittest.TestCase):
+    def test_get_extension(self):
+        self.assertEqual(LanguageUtils.get_extension("Python (CPython 3.11.4)"), ".py")
+        self.assertEqual(LanguageUtils.get_extension("Python (PyPy 3.10-v7.3.12)"), ".py")
+        self.assertEqual(LanguageUtils.get_extension("C++ (GCC 12.2.0)"), ".cpp")
+        self.assertEqual(LanguageUtils.get_extension("C++ 20 (gcc 12.2)"), ".cpp")
+        self.assertEqual(LanguageUtils.get_extension("C (GCC 12.2.0)"), ".c")
+        self.assertEqual(LanguageUtils.get_extension("C# (.NET 7.0.7)"), ".cs")
+        self.assertEqual(LanguageUtils.get_extension("Java (OpenJDK 17)"), ".java")
+        self.assertEqual(LanguageUtils.get_extension("Rust (rustc 1.70.0)"), ".rs")
+        self.assertEqual(LanguageUtils.get_extension("Go (1.20.6)"), ".go")
+        self.assertEqual(LanguageUtils.get_extension("JavaScript (Node.js 18.16.1)"), ".js")
+        self.assertEqual(LanguageUtils.get_extension("TypeScript (5.1.6)"), ".ts")
+        self.assertEqual(LanguageUtils.get_extension("Ruby (3.2.2)"), ".rb")
+        self.assertEqual(LanguageUtils.get_extension("Kotlin (1.8.20)"), ".kt")
+        self.assertEqual(LanguageUtils.get_extension("UnknownLang"), ".txt")
 
 
 class TestRollbackManager(unittest.TestCase):

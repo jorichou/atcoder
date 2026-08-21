@@ -2,7 +2,7 @@
     "problem_id": "abc090_b",
     "solutions": [
         {
-            "file": "01.py",
+            "file": "01.cpp",
             "submission_id": 75402447,
             "submitted_at": "2026-05-02T17:05:39+09:00",
             "submitted_contest": "abc090",

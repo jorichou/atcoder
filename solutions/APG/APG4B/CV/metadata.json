@@ -2,14 +2,14 @@
     "problem_id": "APG4b_cv",
     "solutions": [
         {
-            "file": "01.py",
+            "file": "01.cpp",
             "submission_id": 60015871,
             "submitted_at": "2024-11-21T23:00:38+09:00",
             "submitted_contest": "APG4b",
             "language": "C++ 20 (gcc 12.2)"
         },
         {
-            "file": "02.py",
+            "file": "02.cpp",
             "submission_id": 75288951,
             "submitted_at": "2026-04-26T16:53:42+09:00",
             "submitted_contest": "APG4b",

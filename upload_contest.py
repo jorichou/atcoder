@@ -109,9 +109,81 @@ class ProblemParser:
             contest_name = contest_part.upper()
             return contest_type, contest_name, problem_name
 
-        # Fallback if no '_'
-        name = problem_id.upper()
-        return "OTHER", name, name
+class LanguageUtils:
+    """提出言語文字列から適切な拡張子を判定する"""
+
+    @staticmethod
+    def get_extension(language: str) -> str:
+        lang_lower = language.lower()
+
+        if "c++" in lang_lower or "g++" in lang_lower or "clang++" in lang_lower:
+            return ".cpp"
+        if "c#" in lang_lower:
+            return ".cs"
+        if "f#" in lang_lower:
+            return ".fs"
+        if re.search(r"\bc\b", lang_lower) or lang_lower.startswith("c ") or lang_lower.startswith("c ("):
+            return ".c"
+        if "python" in lang_lower or "pypy" in lang_lower or "cython" in lang_lower:
+            return ".py"
+        if "java" in lang_lower and "javascript" not in lang_lower:
+            return ".java"
+        if "typescript" in lang_lower:
+            return ".ts"
+        if "javascript" in lang_lower or "node" in lang_lower:
+            return ".js"
+        if "rust" in lang_lower:
+            return ".rs"
+        if "go" in lang_lower or lang_lower.startswith("golang"):
+            return ".go"
+        if "ruby" in lang_lower:
+            return ".rb"
+        if "kotlin" in lang_lower:
+            return ".kt"
+        if "swift" in lang_lower:
+            return ".swift"
+        if "php" in lang_lower:
+            return ".php"
+        if "haskell" in lang_lower:
+            return ".hs"
+        if "scala" in lang_lower:
+            return ".scala"
+        if "nim" in lang_lower:
+            return ".nim"
+        if "ocaml" in lang_lower:
+            return ".ml"
+        if "perl" in lang_lower:
+            return ".pl"
+        if re.search(r"\bd\b", lang_lower) or lang_lower.startswith("d ") or lang_lower.startswith("d ("):
+            return ".d"
+        if "fortran" in lang_lower:
+            return ".f90"
+        if "pascal" in lang_lower:
+            return ".pas"
+        if "lua" in lang_lower:
+            return ".lua"
+        if "julia" in lang_lower:
+            return ".jl"
+        if "lisp" in lang_lower:
+            return ".lisp"
+        if "clojure" in lang_lower:
+            return ".clj"
+        if "scheme" in lang_lower or "racket" in lang_lower:
+            return ".scm"
+        if "bash" in lang_lower or "shell" in lang_lower or "zsh" in lang_lower:
+            return ".sh"
+        if "crystal" in lang_lower:
+            return ".cr"
+        if "elixir" in lang_lower:
+            return ".ex"
+        if "erlang" in lang_lower:
+            return ".erl"
+        if "zig" in lang_lower:
+            return ".zig"
+        if "vim" in lang_lower:
+            return ".vim"
+
+        return ".txt"
 
 
 class AtCoderAPI:
@@ -286,12 +358,13 @@ class SubmissionStorage:
         # 既存ファイルから連番を算出
         existing_numbers = []
         for fname in os.listdir(problem_dir):
-            match = re.match(r"^(\d+)\.py$", fname)
-            if match:
+            match = re.match(r"^(\d+)\.[a-zA-Z0-9]+$", fname)
+            if match and fname != "metadata.json":
                 existing_numbers.append(int(match.group(1)))
 
         next_idx = max(existing_numbers, default=0) + 1
-        filename = f"{next_idx:02d}.py"
+        ext = LanguageUtils.get_extension(language)
+        filename = f"{next_idx:02d}{ext}"
         file_path = os.path.join(problem_dir, filename)
 
         meta_path = os.path.join(problem_dir, "metadata.json")
