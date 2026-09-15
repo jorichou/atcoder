@@ -7,6 +7,13 @@
             "submitted_at": "2026-01-03T21:04:11+09:00",
             "submitted_contest": "abc439",
             "language": "Python (PyPy 3.11-v7.3.20)"
+        },
+        {
+            "file": "02.py",
+            "submission_id": 79275202,
+            "submitted_at": "2026-09-15T16:02:31+09:00",
+            "submitted_contest": "adt_all_20260915_1",
+            "language": "Python (PyPy 3.11-v7.3.20)"
         }
     ]
 }
