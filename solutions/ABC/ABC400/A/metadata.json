@@ -14,6 +14,13 @@
             "submitted_at": "2026-08-06T18:03:13+09:00",
             "submitted_contest": "adt_all_20260806_2",
             "language": "Python (PyPy 3.11-v7.3.20)"
+        },
+        {
+            "file": "03.py",
+            "submission_id": 79403472,
+            "submitted_at": "2026-09-20T21:21:18+09:00",
+            "submitted_contest": "adt_all_20260918_1",
+            "language": "Python (PyPy 3.11-v7.3.20)"
         }
     ]
 }
